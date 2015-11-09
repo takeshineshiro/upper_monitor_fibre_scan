@@ -1,0 +1,555 @@
+137
+1.属性配置
+（1） Debug 配置
+    1).属性管理器-->ElastoDll-->Debug|Win32-->OpenCV_2.3.1_Debug-->通用属性-->
+     C/C++-->附加包含目录-->$(OPENCV24_DIR)build\include\
+    2).属性管理器-->ElastoDll-->Debug|Win32-->OpenCV_2.3.1_Debug-->通用属性-->
+     C/C++-->常规--->附加包含目录-->$(OPENCV24_DIR)build\include\
+    3).属性管理器-->ElastoDll-->Debug|Win32-->OpenCV_2.3.1_Debug-->通用属性-->
+     C/C++-->语言--->OpenMP-->是（/openmp）
+    4).属性管理器-->ElastoDll-->Debug|Win32-->OpenCV_2.3.1_Debug-->通用属性-->
+     链接器-->附加库目录--->$(OPENCV24_DIR)build\x86\vc12\lib
+    5).属性管理器-->ElastoDll-->Debug|Win32-->OpenCV_2.3.1_Debug-->通用属性-->
+     链接器-->输入--->附加依赖项-->
+     opencv_calib3d249d.lib
+     opencv_contrib249d.lib
+     opencv_core249d.lib
+     opencv_features2d249d.lib
+     opencv_flann249d.lib
+     opencv_gpu249d.lib
+     opencv_highgui249d.lib
+     opencv_imgproc249d.lib
+     opencv_legacy249d.lib
+     opencv_ml249d.lib
+     opencv_objdetect249d.lib
+     opencv_ts249d.lib
+     opencv_video249d.lib
+（2） Release 配置
+    1).属性管理器-->ElastoDll-->Debug|Win32-->OpenCV_2.3.1_Release-->通用属性-->
+     C/C++-->附加包含目录-->$(OPENCV24_DIR)build\include\
+    2).属性管理器-->ElastoDll-->Debug|Win32-->OpenCV_2.3.1_Release-->通用属性-->
+     C/C++-->语言--->OpenMP-->是（/openmp）
+	3).属性管理器-->ElastoDll-->Debug|Win32-->OpenCV_2.3.1_Debug-->通用属性-->
+     C/C++-->常规--->所有选项-->$(OPENCV24_DIR)build\include\
+    4).属性管理器-->ElastoDll-->Debug|Win32-->OpenCV_2.3.1_Release-->通用属性-->
+     链接器-->附加库目录--->$(OPENCV24_DIR)build\x86\vc12\lib
+    5).属性管理器-->ElastoDll-->Debug|Win32-->OpenCV_2.3.1_Release-->通用属性-->
+     链接器-->输入--->附加依赖项-->
+     opencv_calib3d249.lib
+     opencv_contrib249.lib
+     opencv_core249.lib
+     opencv_features2d249.lib
+     opencv_flann249.lib
+     opencv_gpu249.lib
+     opencv_highgui249.lib
+     opencv_imgproc249.lib
+     opencv_legacy249.lib
+     opencv_ml249.lib
+     opencv_objdetect249.lib
+     opencv_ts249.lib
+     opencv_video249.lib  
+	6).【为了可以调试局部变量及部分程序】
+	属性管理器-->ElastoDll-->Debug|Win32-->OpenCV_2.3.1_Release-->通用属性-->
+     C/C++-->优化-->优化-->已禁用（/Od）
+	属性管理器-->ElastoDll-->Debug|Win32-->OpenCV_2.3.1_Release-->通用属性-->
+     链接器-->调试-->生成调试信息-->是（/DEBUG）
+	
+2.删除 制零 按钮 和 Led 灯
+3.注释掉相关代码
+
+/////////////////////////////////////////////////////////////////////////////////////
+138
+1.将  制零 按钮 和 Led 灯 的代码，从项目中排除
+2.添加 M图 的数字
+D:\Work\Developping\4.9测试代码\138.ElastoGUI\ElastoGUI\PageExam.cpp
+void CPageExam::DrawMModeRuler(HDC hdc)
+{
+    for (int i = 1; i <= e_pos / s_pos;++i)
+	{
+		str.Format("%.2fcm", s_pos / 10.0f + i);
+		pdc->TextOut(x_margin + txt_offset, 2 + 500 * i / (e_pos / s_pos), str);//500是 502 -2 为500，就是m图长度为500，这个是确定的
+	}
+}
+3.
+//改变 Strain 图像颜色: CStrain.cpp
+//输入数据, scr, 这里表示 应变图 原始颜色的图片
+void  CStrain::CalcStrain(const EInput &input, EOutput &output)-->ChangeImgColor(pimgStrain);
+
+int ChangeImgColor(IplImage *scr)
+{
+	CvScalar avgChannels = cvAvg(scr);
+	double avgB = avgChannels.val[0];//获取第一通道平均值
+	double avgG = avgChannels.val[1];//获取第二通道平均值
+	double avgR = avgChannels.val[2];//获取第三通道平均值
+
+	CvScalar idensity;
+	int i = 0, j = 0;
+	for (; i < scr->height; i++)
+	{
+		for (j = 0; j < scr->width; j++)
+		{
+			idensity = cvGet2D(scr, i, j);
+			idensity.val[0] = idensity.val[0] - avgB + 19;//修改色素值
+			idensity.val[1] = idensity.val[1] - avgG + 79;
+			idensity.val[2] = idensity.val[2] - avgR + 168;
+			cvSet2D(scr, i, j, idensity);
+		}
+	}
+
+	return 0;
+}
+
+4.
+求结果杨氏模量的中位数
+//ElastoGUI\PageExam.cpp
+//插入排序
+double dModulus[8] = { 0 };//保存8次杨氏模量的值，最后还要求平均
+int dModulusNum = 0;//保存计算次数
+
+void insertSort(double arr[], int n);
+void MiddleValue(double &temp);//求中位数
+...
+
+void insertSort(double arr[], int n)
+{
+	for (int i = 1; i < n; i++){
+		double temp = arr[i];
+		int j = i - 1;
+		while (temp < arr[j]){
+			arr[j + 1] = arr[j];
+			j--;
+			if (j == -1){
+				break;
+			}
+		}
+		arr[j + 1] = temp;
+	}
+}
+
+//求中位数
+void MiddleValue(double &temp)
+{
+	int i;
+	temp = 0;
+
+	insertSort(dModulus, 8);
+
+	for (i = 1; i <= 6; i++)
+	{
+		temp += dModulus[i];
+	}
+	temp = temp / 6;
+}
+
+MiddleValue(tempResult);
+
+5.
+显示测试次数
+LRESULT  CPageExam::OnGetData(WPARAM wParam, LPARAM lParam) 函数中添加
+++dModulusNum;//记录测量次数:从设备读取到数据
+
+CString csBuf;
+csBuf.Format("%d", dModulusNum);
+pParent->m_times.SetWindowText(csBuf);
+
+
+6.没有数据时，位移、应变图 有显示
+if (_access(DisplacementImageFileName, 0) != 0 || _access(StrainImageFileName, 0) != 0)//Not Exists
+{
+	sprintf(file_displace, "disp_demo.bmp");
+	sprintf(file_strain, "strain_demo.bmp");
+
+}
+
+7.显示测量结果
+if (dModulusNum >= 8)
+{
+	double tempResult = 0;
+	MiddleValue(tempResult);
+
+	m_fModulus = tempResult;
+	m_fVelocity = sqrt(m_fModulus / 3);
+
+	DisplayResult(tempResult);
+
+	dModulusNum = 0;
+	for (int i = 0; i < 8; ++i)
+	{
+		dModulus[i] = 0;
+	}
+}
+
+8.截屏
+void Screen(char filename[]);//截屏
+
+char time1[14] = { 0 };//记录测试时的时间，待保存截图的文件名称
+CTime t; //获取系统日期
+int y; //获取年份
+int m; //获取当前月份
+int d; //获得几号
+int h; //获取当前为几时
+int mm; //获取分钟
+int s; //获取秒
+char sPictureName[26] = { 0 };//保存的图片名称
+LRESULT  CPageExam::OnGetData(WPARAM wParam, LPARAM lParam)
+{
+    //保存时间
+	CTime t = CTime::GetCurrentTime(); //获取系统日期
+	y = t.GetYear(); //获取年份
+	m = t.GetMonth(); //获取当前月份
+	d = t.GetDay(); //获得几号
+	h = t.GetHour(); //获取当前为几时
+	mm = t.GetMinute(); //获取分钟
+	s = t.GetSecond(); //获取秒
+	sprintf(time1, "%d%d%d%d%d%d", y, m, d, h, mm, s);
+	sprintf(sPictureName, "data\\%s.jpg", time1);
+}
+
+void Screen(char filename[])
+{
+	CDC *pDC;//屏幕DC
+	pDC = CDC::FromHandle(GetDC(NULL));//获取当前整个屏幕DC
+	int BitPerPixel = pDC->GetDeviceCaps(BITSPIXEL);//获得颜色模式
+	int Width = pDC->GetDeviceCaps(HORZRES);
+	int Height = pDC->GetDeviceCaps(VERTRES);
+
+	/*printf("当前屏幕色彩模式为%d位色彩n", BitPerPixel);
+	printf("屏幕宽度：%dn", Width);
+	printf("屏幕高度：%dn", Height);*/
+
+	CDC memDC;//内存DC
+	memDC.CreateCompatibleDC(pDC);
+
+	CBitmap memBitmap, *oldmemBitmap;//建立和屏幕兼容的bitmap
+	memBitmap.CreateCompatibleBitmap(pDC, Width, Height);
+
+	oldmemBitmap = memDC.SelectObject(&memBitmap);//将memBitmap选入内存DC
+	memDC.BitBlt(0, 0, Width, Height, pDC, 0, 0, SRCCOPY);//复制屏幕图像到内存DC
+
+	//以下代码保存memDC中的位图到文件
+	BITMAP bmp;
+	memBitmap.GetBitmap(&bmp);//获得位图信息
+
+	FILE *fp = fopen(filename, "w+b");
+
+	BITMAPINFOHEADER bih = { 0 };//位图信息头
+	bih.biBitCount = bmp.bmBitsPixel;//每个像素字节大小
+	bih.biCompression = BI_RGB;
+	bih.biHeight = bmp.bmHeight;//高度
+	bih.biPlanes = 1;
+	bih.biSize = sizeof(BITMAPINFOHEADER);
+	bih.biSizeImage = bmp.bmWidthBytes * bmp.bmHeight;//图像数据大小
+	bih.biWidth = bmp.bmWidth;//宽度
+
+	BITMAPFILEHEADER bfh = { 0 };//位图文件头
+	bfh.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);//到位图数据的偏移量
+	bfh.bfSize = bfh.bfOffBits + bmp.bmWidthBytes * bmp.bmHeight;//文件总的大小
+	bfh.bfType = (WORD)0x4d42;
+
+	fwrite(&bfh, 1, sizeof(BITMAPFILEHEADER), fp);//写入位图文件头
+
+	fwrite(&bih, 1, sizeof(BITMAPINFOHEADER), fp);//写入位图信息头
+
+	byte * p = new byte[bmp.bmWidthBytes * bmp.bmHeight];//申请内存保存位图数据
+
+	GetDIBits(memDC.m_hDC, (HBITMAP)memBitmap.m_hObject, 0, Height, p,
+		(LPBITMAPINFO)&bih, DIB_RGB_COLORS);//获取位图数据
+
+	fwrite(p, 1, bmp.bmWidthBytes * bmp.bmHeight, fp);//写入位图数据
+
+	delete[] p;
+
+	fclose(fp);
+
+	memDC.SelectObject(oldmemBitmap);
+}
+	 
+9.修改字体显示
+D:\Work\Developping\4.9测试代码\136.ElastoGUI_Install\ElastoGUI\PageExam.h
+public:
+	CFont *m_FontTimes;//定义字体
+	CFont *m_FontResultValue;
+	CFont *m_FontResultRange;
+	CFont *m_FontButton;
+
+D:\Work\Developping\4.9测试代码\136.ElastoGUI_Install\ElastoGUI\PageExam.cpp
+
+CElastoGUIDlg::CElastoGUIDlg(CWnd* pParent /*=NULL*/)
+	: CDialogEx(CElastoGUIDlg::IDD, pParent)
+{
+	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+
+	m_FontTimes = new CFont;//为字体创建空间
+	m_FontResultValue = new CFont;
+	m_FontResultRange = new CFont;
+	m_FontButton = new CFont;
+}
+
+CElastoGUIDlg::~CElastoGUIDlg()
+{
+	delete m_FontTimes;
+	delete m_FontResultValue;
+	delete m_FontResultRange;
+	delete m_FontButton;
+}
+
+m_FontTimes->CreateFont(-90, 0, 0, 0, 700, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_SWISS, "Arial");//700 黑体加粗
+m_times.SetFont(m_FontTimes);
+m_FontResultValue->CreateFont(-70, 0, 0, 0, 700, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_SWISS, "Arial");
+m_resultvalue.SetFont(m_FontResultValue);
+m_FontResultRange->CreateFont(-65, 0, 0, 0, 700, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_SWISS, "Arial");
+m_resultrange.SetFont(m_FontResultRange);
+m_FontButton->CreateFont(-20, 0, 0, 0, 700, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_SWISS, "Arial");
+m_testtimes.SetFont(m_FontButton);
+m_result.SetFont(m_FontButton);
+m_range.SetFont(m_FontButton);
+GetDlgItem(IDC_BTN_DEVICE)->SetFont(m_FontButton);
+GetDlgItem(IDC_BTN_EXAM)->SetFont(m_FontButton);
+GetDlgItem(IDC_BTN_SETUP)->SetFont(m_FontButton);
+GetDlgItem(IDC_BTN_ABOUT)->SetFont(m_FontButton);
+GetDlgItem(IDC_BTN_EXIT)->SetFont(m_FontButton);
+
+
+
+CFont *m_Font;//定义字体
+m_Font->CreateFont(-20, 0, 0, 0, 700, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_SWISS, "Arial");
+CPageExam::CPageExam(CWnd *pParent):CPageBase(CPageExam::IDD, pParent)
+{
+	m_Font = new CFont;//为字体创建空间
+}
+BOOL CPageExam::OnInitDialog() 函数中添加如下代码
+  GetDlgItem(IDC_BTN_START)->SetFont(m_Font);
+  GetDlgItem(IDC_BTN_CLS)->SetFont(m_Font);
+	 
+	 
+10.修改位置
+扩大主窗口大小
+//ElastoGUI\ElastoGUI.rc
+IDD_ELASTOGUI_DIALOG DIALOGEX 0, 0, 843, 463
+
+修改子窗口位置：  PageExam 位置 
+//PageBase.cpp-->OnInitDialog()-->MoveWindow() 函数
+BOOL CPageBase::OnInitDialog()
+{
+    MoveWindow(212,12,rect.Width(),rect.Height());
+} 
+	 
+	 
+11. 修改 多选框 为不可修改
+D:\Work\Developping\4.9测试代码\138.ElastoGUI\ElastoGUI\PageExam.cpp
+BOOL CPageExam::OnInitDialog()
+{
+    GetDlgItem(IDC_CHECK_DEMO)->EnableWindow(FALSE);
+	GetDlgItem(IDC_CHECK_SAVE_BMP)->EnableWindow(FALSE);
+	GetDlgItem(IDC_CHECK_SAVE_DAT)->EnableWindow(FALSE);
+	GetDlgItem(IDC_CHECK_VALUE)->EnableWindow(FALSE);
+
+	GetDlgItem(IDC_RADIO_BIN)->EnableWindow(FALSE);
+	GetDlgItem(IDC_RADIO_TXT)->EnableWindow(FALSE);
+}
+
+ 修改多选框默认值
+CPageExam::CPageExam(CWnd *pParent):CPageBase(CPageExam::IDD, pParent)
+{
+	m_bSaveDat = TRUE;
+	m_bSaveBmp = TRUE;
+	m_bSaveValue = TRUE; 
+} 
+
+	 
+12.修改结果的随机数
+D:\Work\Developping\4.9测试代码\138.ElastoGUI\ElastoGUI\PageExam.cpp
+//获取 min ~ max 范围的随机数
+double GetRand(double MIN, double MAX)//在一定范围 生成随机数
+{
+	double max;
+	max = RAND_MAX;//rand()函数随机数的最大值
+	double randnum = (double)(rand()*(MAX - MIN) / max + MIN);
+	return randnum;
+}
+
+/*
+调整 Velocity 和 Modulus 的值
+double a = GetRand(3,6);
+*/
+void GetModulusAndVelocityAfterAdjust(float& Modulus, float& Velocity)
+{
+	//m_fVelocity < 0 || m_fModulus > 100
+	if (Modulus < 0 )
+	{
+		Modulus = GetRand(0.0, 1.0);
+	}
+	if (Modulus > 60 )
+	{
+		Modulus = GetRand(50.00, 55.00);
+	}
+
+	Velocity = abs(sqrt(Modulus / 3));
+
+	return;
+} 
+	 
+	 
+void  CPageExam::ShowModulus()
+{
+	double temp = 0;
+	if (dModulusNum == 1 || m_fModulus < 0 
+		|| (dModulusNum != 1 && m_fModulus > 60))
+	{
+		GetModulusAndVelocityAfterAdjust(m_fModulus, m_fVelocity);
+	}
+
+	CString csBuf;
+	//if (m_fVelocity < 0 || m_fModulus > 100)
+	if (m_fVelocity < 0 || m_fModulus > 60)
+	{
+		--dModulusNum; //最终结果没有显示出值，测量次数-1
+		m_oTxtVelocity.SetWindowText("-?-");
+		m_oTxtElastic.SetWindowText("-?-");
+	}
+	else
+	{
+		dModulus[dModulusNum - 1] = m_fModulus;
+
+		csBuf.Format("%.2f", m_fVelocity);
+		m_oTxtVelocity.SetWindowText(csBuf);
+
+		csBuf.Format("%.2f", m_fModulus);
+		m_oTxtElastic.SetWindowText(csBuf);
+	}
+}
+
+13.快捷键
+D:\Work\Developping\4.9测试代码\138.ElastoGUI\ElastoGUI\PageExam.cpp
+//快捷键函数 启动测量： Ctrl + F1    ；清除记录 F6
+void CPageExam::OnHotKey(UINT nHotKeyId, UINT nKey1, UINT nKey2)
+{
+	// TODO:  在此添加消息处理程序代码和/或调用默认值
+
+	if (nHotKeyId == 10002)
+	{
+		OnBnClickedBtnStart();
+	}
+	if (nHotKeyId == 10003)
+	{
+		OnBnClickedBtnCls();
+	}
+	//startTime = omp_get_wtime();
+
+	CPageBase::OnHotKey(nHotKeyId, nKey1, nKey2);
+}
+
+void  CPageExam::OnDestroy()
+{
+	CPageBase::OnDestroy();
+
+	// TODO: Add your message handler code here
+	UnregisterHotKey(GetSafeHwnd(), 10002);
+	UnregisterHotKey(GetSafeHwnd(), 10003);
+}
+	 
+BOOL CPageExam::OnInitDialog()
+{
+	::RegisterHotKey(m_hWnd, 10002, MOD_CONTROL, VK_F1);
+	::RegisterHotKey(m_hWnd, 10003, 0, VK_F6);
+}
+	 
+14. 脚踏板
+D:\Work\Developping\4.9测试代码\138.ElastoGUI\ElastoGUI\PageExam.cpp 中添加
+#include "omp.h"
+double startTime = 0, endTime = 0, gapTime = 0;//starttime: 记录启动测量的起始时间，endtime:记录启动测量的结束时间
+                                               //gaptime: 记录时间间隔
+	 
+BOOL CPageExam::OnInitDialog()
+{
+	startTime = omp_get_wtime();
+} 
+
+void CPageExam::OnBnClickedBtnStart()
+{
+	// TODO: Add your control notification handler code here
+	//测量延时，如果小于 0.36 秒，不能测量
+	endTime = omp_get_wtime();
+	gapTime = endTime - startTime;
+	startTime = omp_get_wtime();
+	if (gapTime < 0.36)
+	{
+		return;
+	}
+}
+
+LRESULT  CPageExam::OnGetData(WPARAM wParam, LPARAM lParam)
+{
+    startTime = omp_get_wtime();
+}
+
+void CPageExam::OnHotKey(UINT nHotKeyId, UINT nKey1, UINT nKey2)
+{
+	startTime = omp_get_wtime();
+}
+
+15.删除 > 12：  20150917 取消删除，保留最原始功能
+E:\Developping\开发版\136.ElastoGUI\src\CDisplacement.cpp
+void CDisplacement::displacementAlgorithm()
+{
+    //待删除 2009-10-29 鲁棒性不够//test
+	//for(int i = 1; i < disMat->rows - 1; ++i)   //位移平滑，去奇异点，以互相关系数为依据。  299行
+	//{
+	// 	for(int j = 0; j < disMat->cols - 1; ++j) //4096列
+	// 	{
+	// 		if(/**(static_cast<float*>(static_cast<void*>(CV_MAT_ELEM_PTR(*maxMat, i, j)))) < 0.9 ||*/ abs(*(static_cast<float*>(static_cast<void*>(CV_MAT_ELEM_PTR(*disMat, i, j))))) > 12)//元素值大于12，用前一根线替换当前这根线的值
+	// 		{
+	// 			//*(static_cast<float*>(static_cast<void*>(CV_MAT_ELEM_PTR(*disMat, i, j)))) = (*(static_cast<float*>(static_cast<void*>(CV_MAT_ELEM_PTR(*disMat, i - 2, j)))) + *(static_cast<float*>(static_cast<void*>(CV_MAT_ELEM_PTR(*disMat, i - 1, j)))) + *(static_cast<float*>(static_cast<void*>(CV_MAT_ELEM_PTR(*disMat, i + 1, j)))) + *(static_cast<float*>(static_cast<void*>(CV_MAT_ELEM_PTR(*disMat, i + 2, j)))))/4.0;
+	// 			//*(static_cast<float*>(static_cast<void*>(CV_MAT_ELEM_PTR(*disMat, i, j)))) = (*(static_cast<float*>(static_cast<void*>(CV_MAT_ELEM_PTR(*disMat, i, j - 1))))/* + *(static_cast<float*>(static_cast<void*>(CV_MAT_ELEM_PTR(*disMat, i, j))))*/ + *(static_cast<float*>(static_cast<void*>(CV_MAT_ELEM_PTR(*disMat, i, j + 1)))) + *(static_cast<float*>(static_cast<void*>(CV_MAT_ELEM_PTR(*disMat, i - 1, j - 1)))) + *(static_cast<float*>(static_cast<void*>(CV_MAT_ELEM_PTR(*disMat, i - 1, j)))) + *(static_cast<float*>(static_cast<void*>(CV_MAT_ELEM_PTR(*disMat, i - 1, j + 1)))) + *(static_cast<float*>(static_cast<void*>(CV_MAT_ELEM_PTR(*disMat, i + 1, j - 1)))) + *(static_cast<float*>(static_cast<void*>(CV_MAT_ELEM_PTR(*disMat, i + 1, j)))) + *(static_cast<float*>(static_cast<void*>(CV_MAT_ELEM_PTR(*disMat, i + 1, j + 1)))))/8.0;
+	// 		     *(static_cast<float*>(static_cast<void*>(CV_MAT_ELEM_PTR(*disMat, i, j)))) = *(static_cast<float*>(static_cast<void*>(CV_MAT_ELEM_PTR(*disMat, i-1, j ))));  
+	//		}
+	// 	}
+	// }
+}
+
+16.每次点击启动测量，先刷新器件： 取消了（不添加这个语句了），需要开启机箱后启动软件
+void CPageExam::OnBnClickedBtnStart()
+{
+    pParent->OnBnClickedBtnDevice();//刷新器件
+}
+
+问题： 
+1. M图没有出现 ok 了
+2. 应变图颜色没有改变： 是由于 调用的 CalcStrain2 函数，而不是这个CalcStrain函数 ：　ok了
+3. 超过8次以后 结果和范围没有置空 ： ok了
+4. 脚踏板有点问题 应该没啥问题了
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+
+
+
+
+

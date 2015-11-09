@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type='text/xsl' href='_UpgradeReport_Files/UpgradeReport.xslt'?><UpgradeLog>
+<Properties><Property Name="Solution" Value="Elasto">
+</Property><Property Name="Solution File" Value="F:\workspace\project\新肝硬化仪\proj\Elasto\Elasto.sln">
+</Property><Property Name="Date" Value="2015年5月4日">
+</Property><Property Name="Time" Value="15:04:58">
+</Property></Properties><Event ErrorLevel="0" Project="test" Source="test\test.vcproj" Description="Converting project file 'F:\workspace\project\新肝硬化仪\proj\Elasto\test\test.vcproj'.">
+</Event><Event ErrorLevel="1" Project="test" Source="test\test.vcproj" Description="VCWebServiceProxyGeneratorTool is no longer supported. The tool has been removed from your project settings.">
+</Event><Event ErrorLevel="0" Project="test" Source="test\test.vcproj" Description="Done converting to new project file 'F:\workspace\project\新肝硬化仪\proj\Elasto\test\test.vcxproj'.">
+</Event><Event ErrorLevel="3" Project="test" Source="test\test.vcproj" Description="Converted">
+</Event></UpgradeLog>
